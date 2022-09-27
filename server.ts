@@ -27,10 +27,9 @@ const client = new Client(dbConfig);
 client.connect();
 
 app.get("/", async (req, res) => {
-  const dbres = await client.query('select * from categories');
-  res.json(dbres.rows);
+  const response = await client.query('select * from notes')
+  res.json(response.rows);
 });
-
 
 //Start the server on the given port
 const port = process.env.PORT;
