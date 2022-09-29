@@ -56,8 +56,10 @@ app.post<{}, {}, {note_body : string}>("/notes", async (req, res) => {
 
 //Update an existing note
 app.put<{}, {}, {note : PutNoteRequest}>("/notes", async (req, res) => {
-  const {note_id, note_body, position} = req.body.note
-  const {x : position_x, y : position_y} = position
+  const {note} = req.body
+  const {note_id, note_body, position} = note
+  const {x : position_x, y: position_y} = position
+
   try {
     const response = await client.query(`
       UPDATE notes
@@ -67,6 +69,21 @@ app.put<{}, {}, {note : PutNoteRequest}>("/notes", async (req, res) => {
         WHERE note_id = $4
       RETURNING *
     `, [note_body, position_x, position_y, note_id])
+    res.json(response.rows)
+  } catch (error) {
+    console.error(error)
+  }
+  
+})
+
+//Delete a specific note
+app.delete<{note_id : number}>("/notes", async (req, res) => {
+  const {note_id} = req.body
+  try {
+    const response = await client.query(`
+      DELETE FROM notes
+      WHERE note_id = $1
+    `, [note_id])
     res.json(response.rows)
   } catch (error) {
     console.error(error)
