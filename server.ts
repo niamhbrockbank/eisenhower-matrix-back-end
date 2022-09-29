@@ -28,12 +28,30 @@ client.connect();
 
 //Get all notes
 app.get("/notes", async (req, res) => {
-  const response = await client.query('select * from notes')
-  res.json(response.rows);
+  try {
+    const response = await client.query(`
+      SELECT * FROM NOTES
+    `)
+    res.json(response.rows);
+  } catch (error) {
+    console.error(error)
+  }
 });
 
 //Post a new note
-
+app.post<{}, {}, {note_body : string}>("/notes", async (req, res) => {
+  const {note_body} = req.body
+  try {
+    const response = await client.query(`
+      INSERT INTO notes (note_body)
+      VALUES ($1)
+      RETURNING *
+    `, [note_body])
+    res.json(response.rows)
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 //Start the server on the given port
 const port = process.env.PORT;
