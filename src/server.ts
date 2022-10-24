@@ -21,6 +21,17 @@ const dbConfig = {
 
 const app = express();
 
+//set up socket.io server
+import http from "http"
+import { Server } from "socket.io"
+const server = http.createServer(app)
+const io = new Server(server)
+
+const socket = io.on('connection', () => {
+  console.log('user connected')
+})
+
+//middleware
 app.use(express.json()); //add body parser to each following route handler
 app.use(cors()) //add CORS support to each following route handler
 
@@ -34,6 +45,7 @@ app.get("/notes", async (req, res) => {
       SELECT * FROM NOTES
     `)
     res.json(response.rows);
+    socket.emit("Get all notes", (response.rows))
   } catch (error) {
     console.error(error)
   }
