@@ -2,6 +2,8 @@ import { Client } from "pg";
 import { config } from "dotenv";
 import express from "express";
 import cors from "cors";
+import http from "http"
+import { Server } from "socket.io"
 import { PutNoteRequest } from "./types";
 
 config(); //Read .env file lines as though they were env vars.
@@ -22,8 +24,6 @@ const dbConfig = {
 const app = express();
 
 //set up socket.io server
-import http from "http"
-import { Server } from "socket.io"
 const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
@@ -42,12 +42,12 @@ app.use(cors()) //add CORS support to each following route handler
 const client = new Client(dbConfig);
 client.connect();
 
-app.get('/', async () => {
-  const response = await client.query(`
+async function updateAllClients() {
+  const socketResponse = await client.query(`
       SELECT * FROM NOTES
     `)
-  socket.emit("Get all notes", (response.rows))
-})
+  socket.emit("Get all notes", (socketResponse.rows))
+}
 
 //Get all notes
 app.get("/notes", async (req, res) => {
@@ -56,6 +56,8 @@ app.get("/notes", async (req, res) => {
       SELECT * FROM NOTES
     `)
     res.json(response.rows);
+
+    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -71,6 +73,8 @@ app.post<{}, {}, {note_body : string}>("/notes", async (req, res) => {
       RETURNING *
     `, [note_body])
     res.json(response.rows)
+
+    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -92,6 +96,8 @@ app.put<{}, {}, {note : PutNoteRequest}>("/notes", async (req, res) => {
       RETURNING *
     `, [note_body, position_x, position_y, note_id])
     res.json(response.rows)
+
+    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -107,6 +113,8 @@ app.delete<{note_id : number}>("/notes", async (req, res) => {
       WHERE note_id = $1
     `, [note_id])
     res.json(response.rows)
+
+    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
