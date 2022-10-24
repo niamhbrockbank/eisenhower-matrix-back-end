@@ -42,12 +42,12 @@ app.use(cors()) //add CORS support to each following route handler
 const client = new Client(dbConfig);
 client.connect();
 
-async function updateAllClients() {
+app.get('/', async function updateAllClients() {
   const socketResponse = await client.query(`
       SELECT * FROM NOTES
     `)
   socket.emit("Get all notes", (socketResponse.rows))
-}
+})
 
 //Get all notes
 app.get("/notes", async (req, res) => {
@@ -56,8 +56,6 @@ app.get("/notes", async (req, res) => {
       SELECT * FROM NOTES
     `)
     res.json(response.rows);
-
-    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -73,8 +71,6 @@ app.post<{}, {}, {note_body : string}>("/notes", async (req, res) => {
       RETURNING *
     `, [note_body])
     res.json(response.rows)
-
-    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -96,8 +92,6 @@ app.put<{}, {}, {note : PutNoteRequest}>("/notes", async (req, res) => {
       RETURNING *
     `, [note_body, position_x, position_y, note_id])
     res.json(response.rows)
-
-    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
@@ -113,8 +107,6 @@ app.delete<{note_id : number}>("/notes", async (req, res) => {
       WHERE note_id = $1
     `, [note_id])
     res.json(response.rows)
-
-    await updateAllClients()
   } catch (error) {
     console.error(error)
   }
