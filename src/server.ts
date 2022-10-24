@@ -42,6 +42,13 @@ app.use(cors()) //add CORS support to each following route handler
 const client = new Client(dbConfig);
 client.connect();
 
+app.get('/', async () => {
+  const response = await client.query(`
+      SELECT * FROM NOTES
+    `)
+  socket.emit("Get all notes", (response.rows))
+})
+
 //Get all notes
 app.get("/notes", async (req, res) => {
   try {
@@ -49,10 +56,6 @@ app.get("/notes", async (req, res) => {
       SELECT * FROM NOTES
     `)
     res.json(response.rows);
-    const socketResponse = await client.query(`
-      SELECT * FROM NOTES
-    `)
-    socket.emit("Get all notes", (socketResponse.rows))
   } catch (error) {
     console.error(error)
   }
