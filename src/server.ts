@@ -49,7 +49,10 @@ app.get("/notes", async (req, res) => {
       SELECT * FROM NOTES
     `)
     res.json(response.rows);
-    socket.emit("Get all notes", (response.rows))
+    const socketResponse = await client.query(`
+      SELECT * FROM NOTES
+    `)
+    socket.emit("Get all notes", (socketResponse.rows))
   } catch (error) {
     console.error(error)
   }
